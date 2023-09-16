@@ -23,9 +23,9 @@ while True:
     img_final[0:fr_height, 0: fr_width, :] = frame[0: fr_height, 0: fr_width, :]
     cv2.imshow('Secret Capture', img_final)
 
+
     # cv2.imshow('webcam', frame)
 
     captured_video.write(img_final)
     if cv2.waitKey(10) == ord('q'):
         break
-    
