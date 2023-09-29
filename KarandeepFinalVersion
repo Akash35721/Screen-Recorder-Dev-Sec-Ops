@@ -1,0 +1,71 @@
+import datetime
+import numpy as np
+import cv2
+import mss
+
+# Define the desired scale factor for resizing (0.3 means 30% reduction)
+scale_factor = 0.2
+
+# Get the screen width and height
+screen = mss.mss()
+monitors = screen.monitors
+mon = monitors[0]  # Use the first monitor (change index as needed)
+width = mon["width"]
+height = mon["height"]
+scaled_width = int(width * scale_factor)
+scaled_height = int(height * scale_factor)
+
+# Calculate the position to place the camera frame (shifted to the left)
+cam_position_x = 0
+cam_position_y = 0
+
+# Specify the file name for the output video
+time_stamp = datetime.datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+file_name = f'{time_stamp}.mp4'
+
+# Define the codec and create a VideoWriter object
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+captured_video = cv2.VideoWriter(file_name, fourcc, 20.0, (width, height))
+
+# Specify the camera index (e.g., 0 for the default camera)
+camera_index = 0
+
+webcam = cv2.VideoCapture(camera_index)
+
+# Check if the camera was successfully opened
+if not webcam.isOpened():
+    print(f"Error: Could not open camera with index {camera_index}")
+else:
+    while True:
+        # Capture the screen of the specified monitor
+        screen_capture = np.array(screen.grab(mon))
+        
+        # Convert the screen capture frame from RGBA to BGR
+        screen_capture = cv2.cvtColor(screen_capture, cv2.COLOR_RGBA2BGR)
+        
+        # Resize the screen capture to the desired width and height
+        screen_capture = cv2.resize(screen_capture, (width, height))
+        
+        # Read a frame from the webcam
+        ret, frame = webcam.read()
+        
+        # Check if frame is not None (i.e., the read was successful)
+        if ret:
+            # Resize the camera frame to the desired scaled width and height
+            frame = cv2.resize(frame, (scaled_width, scaled_height))
+            
+            # Place the camera frame within the screen capture frame at the specified position
+            screen_capture[cam_position_y:cam_position_y + scaled_height, cam_position_x:cam_position_x + scaled_width, :] = frame
+            
+            cv2.imshow('Secret Capture', screen_capture)
+    
+            # Write the frame to the output video
+            captured_video.write(screen_capture)
+        
+        if cv2.waitKey(10) == ord('q'):
+            break
+
+# Release the resources and close the output video file
+captured_video.release()
+cv2.destroyAllWindows()
+webcam.release()
