@@ -1,4 +1,2 @@
-
-ook writing about new update in vs code 
-
-changes from the notepad
+import cv2
+print(cv2.__version__)
